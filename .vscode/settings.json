@@ -1,0 +1,5 @@
+{
+  "debug.javascript.usePreview": false,
+  "debug.node.autoAttach": "on",
+  "typescript.preferences.includePackageJsonAutoImports": "auto"
+}
