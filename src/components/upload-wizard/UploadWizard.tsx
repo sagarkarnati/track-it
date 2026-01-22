@@ -26,16 +26,21 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 const steps = [
     {
         id: 1,
-        title: "Upload Files",
-        description: "Select input files",
+        title: "COSEC File",
+        description: "Upload attendance dump",
     },
     {
         id: 2,
+        title: "BBHR File",
+        description: "Upload time off schedule",
+    },
+    {
+        id: 3,
         title: "Configure",
         description: "Set report details",
     },
     {
-        id: 3,
+        id: 4,
         title: "Review",
         description: "Confirm and process",
     },
@@ -58,11 +63,11 @@ export function UploadWizard() {
         setCosecFile(file)
         setIsValidating(true)
         setError(null)
-        
+
         try {
             const validation = await FileValidator.validateCosecFile(file)
             setCosecValidation(validation)
-            
+
             if (!validation.isValid) {
                 setError("COSEC file validation failed. Please check the file and try again.")
             }
@@ -78,11 +83,11 @@ export function UploadWizard() {
         setBbhrFile(file)
         setIsValidating(true)
         setError(null)
-        
+
         try {
             const validation = await FileValidator.validateBBHRFile(file)
             setBbhrValidation(validation)
-            
+
             if (!validation.isValid) {
                 setError("BBHR file validation failed. Please check the file and try again.")
             }
@@ -97,27 +102,39 @@ export function UploadWizard() {
     const handleNext = () => {
         setError(null)
 
-        // Validation for Step 1
+        // Validation for Step 1 (COSEC File)
         if (currentStep === 1) {
-            if (!cosecFile || !bbhrFile) {
-                setError("Please upload both required files")
+            if (!cosecFile) {
+                setError("Please upload the COSEC file")
                 return
             }
-            if (!cosecValidation?.isValid || !bbhrValidation?.isValid) {
-                setError("Please fix file validation errors before proceeding")
+            if (!cosecValidation?.isValid) {
+                setError("Please fix COSEC file validation errors before proceeding")
                 return
             }
         }
 
-        // Validation for Step 2
+        // Validation for Step 2 (BBHR File)
         if (currentStep === 2) {
+            if (!bbhrFile) {
+                setError("Please upload the BBHR file")
+                return
+            }
+            if (!bbhrValidation?.isValid) {
+                setError("Please fix BBHR file validation errors before proceeding")
+                return
+            }
+        }
+
+        // Validation for Step 3 (Configure)
+        if (currentStep === 3) {
             if (!reportMonth || !reportName) {
                 setError("Please fill in all required fields")
                 return
             }
         }
 
-        if (currentStep < 3) {
+        if (currentStep < 4) {
             setCurrentStep(currentStep + 1)
         }
     }
@@ -222,29 +239,35 @@ export function UploadWizard() {
                         <CardHeader className="pb-6">
                             <CardTitle className="text-3xl font-bold tracking-tight">Create New Attendance Report</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="space-y-6">
                             {/* Progress Steps */}
                             <ProgressSteps steps={steps} currentStep={currentStep} />
 
                             {/* Error Alert */}
                             {error && (
-                                <Alert variant="destructive" className="mb-6">
-                                    <AlertCircle className="h-4 w-4" />
-                                    <AlertDescription>{error}</AlertDescription>
+                                <Alert variant="destructive" className="mt-2">
+                                    <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                                    <AlertDescription className="ml-3">{error}</AlertDescription>
                                 </Alert>
                             )}
 
                             {/* Validation Loading */}
                             {isValidating && (
-                                <Alert className="mb-6">
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    <AlertDescription>Validating file... Please wait.</AlertDescription>
+                                <Alert className="mt-2">
+                                    <Loader2 className="h-5 w-5 flex-shrink-0 animate-spin" />
+                                    <AlertDescription className="ml-3">Validating file... Please wait.</AlertDescription>
                                 </Alert>
                             )}
 
-                            {/* Step 1: Upload Files */}
+                            {/* Step 1: Upload COSEC File */}
                             {currentStep === 1 && (
-                                <div className="space-y-8 mt-8">
+                                <div className="space-y-6 mt-4">
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-2">Upload COSEC Attendance Dump</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Select your COSEC attendance dump file in Excel format
+                                        </p>
+                                    </div>
                                     <div className="space-y-4">
                                         <FileDropzone
                                             label="COSEC Dump File"
@@ -257,12 +280,23 @@ export function UploadWizard() {
                                             onFileSelect={handleCosecFileSelect}
                                             onFileRemove={handleCosecFileRemove}
                                         />
-                                        
+
                                         {cosecValidation && (
                                             <FilePreview data={cosecValidation} fileType="COSEC" />
                                         )}
                                     </div>
+                                </div>
+                            )}
 
+                            {/* Step 2: Upload BBHR File */}
+                            {currentStep === 2 && (
+                                <div className="space-y-6 mt-4">
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-2">Upload BBHR Time Off Schedule</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Select your BBHR time off schedule file in Excel format
+                                        </p>
+                                    </div>
                                     <div className="space-y-4">
                                         <FileDropzone
                                             label="BBHR Time Off Schedule"
@@ -275,7 +309,7 @@ export function UploadWizard() {
                                             onFileSelect={handleBbhrFileSelect}
                                             onFileRemove={handleBbhrFileRemove}
                                         />
-                                        
+
                                         {bbhrValidation && (
                                             <FilePreview data={bbhrValidation} fileType="BBHR" />
                                         )}
@@ -283,9 +317,12 @@ export function UploadWizard() {
                                 </div>
                             )}
 
-                            {/* Step 2: Configure */}
-                            {currentStep === 2 && (
-                                <div className="space-y-6 mt-8">
+                            {/* Step 3: Configure */}
+                            {currentStep === 3 && (
+                                <div className="space-y-6 mt-4">
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-4">Configure Report Details</h3>
+                                    </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="reportMonth" className="text-base font-semibold">Report Month *</Label>
                                         <Input
@@ -316,12 +353,15 @@ export function UploadWizard() {
                                         </p>
                                     </div>
                                 </div>
-                            {/* Step 3: Review */}
-                            {currentStep === 3 && (
-                                <div className="space-y-6 mt-8">
-                                    <div className="rounded-xl border-2 bg-slate-50 dark:bg-slate-900 p-8 space-y-6">
-                                        <h3 className="font-bold text-xl">Review Report Details</h3>
+                            )}
 
+                            {/* Step 4: Review */}
+                            {currentStep === 4 && (
+                                <div className="space-y-6 mt-4">
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-4">Review Report Details</h3>
+                                    </div>
+                                    <div className="rounded-xl border-2 bg-slate-50 dark:bg-slate-900 p-8 space-y-6">
                                         <div className="space-y-4">
                                             <div className="flex justify-between py-3 border-b">
                                                 <span className="text-sm font-semibold text-muted-foreground">Report Name:</span>
@@ -353,7 +393,7 @@ export function UploadWizard() {
 
                                         <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20">
                                             <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                            <AlertDescription className="text-blue-900 dark:text-blue-100">
+                                            <AlertDescription className="text-blue-900 dark:text-blue-100 ml-3">
                                                 Please review the details carefully before processing. This action will
                                                 generate the attendance report based on the uploaded files.
                                             </AlertDescription>
@@ -373,17 +413,17 @@ export function UploadWizard() {
                                     Back
                                 </Button>
 
-                                {currentStep < 3 ? (
-                                    <Button 
-                                        onClick={handleNext} 
+                                {currentStep < 4 ? (
+                                    <Button
+                                        onClick={handleNext}
                                         disabled={isProcessing || isValidating}
                                         className="h-11 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                                     >
                                         Next →
                                     </Button>
                                 ) : (
-                                    <Button 
-                                        onClick={handleProcess} 
+                                    <Button
+                                        onClick={handleProcess}
                                         disabled={isProcessing || isValidating}
                                         className="h-11 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                                     >
@@ -400,9 +440,7 @@ export function UploadWizard() {
                             </div>
                         </CardContent>
                     </Card>
-                </div  </div>
-                    </CardContent>
-                </Card>
+                </div>
             </div>
         </>
     )

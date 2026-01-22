@@ -13,10 +13,10 @@ export function CTACard() {
     <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300">
       {/* Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600" />
-      
+
       {/* Animated overlay pattern */}
       <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
-      
+
       <CardContent className="relative pt-10 pb-12 px-8 text-center">
         {/* Icon with glow effect */}
         <div className="mb-6 inline-flex items-center justify-center">
@@ -38,15 +38,15 @@ export function CTACard() {
         <CardTitle className="text-3xl font-bold mb-3 text-white tracking-tight">
           Create Attendance Report
         </CardTitle>
-        
+
         {/* Description */}
         <CardDescription className="text-blue-50 mb-8 text-base max-w-md mx-auto">
           Upload your files and process attendance data in minutes with automated validation and insights
         </CardDescription>
-        
+
         {/* CTA Button */}
-        <Button 
-          size="lg" 
+        <Button
+          size="lg"
           asChild
           className="bg-white text-blue-600 hover:bg-blue-50 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 h-12 px-8 font-semibold"
         >

@@ -15,22 +15,23 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Download, FileSpreadsheet, Calendar, ArrowRight } from "lucide-react"
+import { Download, FileSpreadsheet, Calendar, ArrowRight, Loader2 } from "lucide-react"
 import { formatDistanceToNow, format } from "date-fns"
+import { useReports } from "@/hooks/useReports"
 
-interface Report {
-  id: string
-  month: string
-  processedDate: Date
-  status: "completed" | "failed"
-}
+export function RecentReportsTable() {
+  const { reports, isLoading } = useReports()
 
-interface RecentReportsTableProps {
-  reports: Report[]
-  onDownload: (reportId: string) => void
-}
+  if (isLoading) {
+    return (
+      <Card className="border-0 shadow-md">
+        <CardContent className="flex items-center justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    )
+  }
 
-export function RecentReportsTable({ reports, onDownload }: RecentReportsTableProps) {
   if (reports.length === 0) {
     return (
       <Card className="border-0 shadow-md bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
@@ -69,7 +70,7 @@ export function RecentReportsTable({ reports, onDownload }: RecentReportsTablePr
           </Link>
         </Button>
       </div>
-      
+
       <Card className="border-0 shadow-md">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -93,34 +94,36 @@ export function RecentReportsTable({ reports, onDownload }: RecentReportsTablePr
                         <div>
                           <p className="font-semibold">{report.month}</p>
                           <p className="text-xs text-muted-foreground">
-                            {format(report.processedDate, 'MMM d, yyyy')}
+                            {format(new Date(report.created_at), 'MMM d, yyyy')}
                           </p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatDistanceToNow(report.processedDate, { addSuffix: true })}
+                      {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
                     </TableCell>
                     <TableCell>
-                      <Badge 
+                      <Badge
                         variant={report.status === "completed" ? "default" : "destructive"}
-                        className={report.status === "completed" 
-                          ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800" 
+                        className={report.status === "completed"
+                          ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800"
                           : ""
                         }
                       >
-                        {report.status === "completed" ? "Completed" : "Failed"}
+                        {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
-                        onClick={() => onDownload(report.id)}
+                        asChild
                         className="font-medium hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 dark:hover:bg-blue-950/30 dark:hover:text-blue-400"
                       >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download
+                        <Link href={`/api/reports/${report.id}/download`}>
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </Link>
                       </Button>
                     </TableCell>
                   </TableRow>

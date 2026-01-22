@@ -5,9 +5,6 @@ import {
   FileSpreadsheet,
   Home,
   FileText,
-  History,
-  Settings2,
-  Plus,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -51,11 +48,6 @@ const data = {
           url: "/reports/new",
         },
       ],
-    },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings2,
     },
   ],
 }

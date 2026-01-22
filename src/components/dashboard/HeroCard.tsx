@@ -6,14 +6,22 @@ import {
 } from "@/components/ui/card"
 import { formatDistanceToNow, format } from "date-fns"
 import { Clock, CheckCircle2, TrendingUp } from "lucide-react"
+import { AuthServer } from "@/lib/auth/auth-server"
 
 interface HeroCardProps {
-  userName: string
+  userName?: string
   lastReportDate?: Date
   lastReportMonth?: string
 }
 
-export function HeroCard({ userName, lastReportDate, lastReportMonth }: HeroCardProps) {
+export async function HeroCard({ userName: userNameProp, lastReportDate, lastReportMonth }: HeroCardProps) {
+  // Get user name from server if not provided
+  let userName = userNameProp
+  if (!userName) {
+    const user = await AuthServer.getServerUser()
+    userName = user?.fullName || "User"
+  }
+
   const currentHour = new Date().getHours()
   const greeting = currentHour < 12 ? "Good morning" : currentHour < 18 ? "Good afternoon" : "Good evening"
 
