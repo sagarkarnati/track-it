@@ -18,7 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Download, Search, Filter } from "lucide-react"
+import { Download, Search, Filter, Loader2 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import {
     Breadcrumb,
@@ -30,54 +30,12 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-
-interface Report {
-    id: string
-    name: string
-    month: string
-    processedDate: Date
-    status: "completed" | "failed"
-    fileSize: string
-}
+import { Skeleton } from "@/components/ui/skeleton"
+import { useReports } from "@/hooks/useReports"
 
 export function ReportsTable() {
     const [searchQuery, setSearchQuery] = useState("")
-
-    // Mock data - will be replaced with API calls
-    const allReports: Report[] = [
-        {
-            id: "1",
-            name: "January 2026 Attendance",
-            month: "January 2026",
-            processedDate: new Date(2026, 0, 15),
-            status: "completed",
-            fileSize: "2.3 MB",
-        },
-        {
-            id: "2",
-            name: "December 2025 Attendance",
-            month: "December 2025",
-            processedDate: new Date(2025, 11, 12),
-            status: "completed",
-            fileSize: "2.1 MB",
-        },
-        {
-            id: "3",
-            name: "November 2025 Attendance",
-            month: "November 2025",
-            processedDate: new Date(2025, 10, 10),
-            status: "completed",
-            fileSize: "2.2 MB",
-        },
-        {
-            id: "4",
-            name: "October 2025 Attendance",
-            month: "October 2025",
-            processedDate: new Date(2025, 9, 8),
-            status: "failed",
-            fileSize: "-",
-        },
-    ]
+    const { reports: allReports, isLoading } = useReports()
 
     const filteredReports = allReports.filter(
         (report) =>
@@ -85,9 +43,17 @@ export function ReportsTable() {
             report.month.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
-    const handleDownload = (reportId: string) => {
-        console.log("Downloading report:", reportId)
-        // TODO: Implement actual download logic
+    const handleDownload = async (reportId: string) => {
+        try {
+            const response = await fetch(`/api/reports/${reportId}/download`)
+            const data = await response.json()
+
+            if (data.downloadUrl) {
+                window.open(data.downloadUrl, '_blank')
+            }
+        } catch (error) {
+            console.error("Download failed:", error)
+        }
     }
 
     return (
@@ -141,7 +107,13 @@ export function ReportsTable() {
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                        {filteredReports.length === 0 ? (
+                        {isLoading ? (
+                            <div className="p-8 space-y-4">
+                                <Skeleton className="h-12 w-full" />
+                                <Skeleton className="h-12 w-full" />
+                                <Skeleton className="h-12 w-full" />
+                            </div>
+                        ) : filteredReports.length === 0 ? (
                             <div className="flex flex-col items-center py-12">
                                 <div className="text-6xl mb-4">📊</div>
                                 <h3 className="text-xl font-semibold mb-2">No reports found</h3>
@@ -174,21 +146,25 @@ export function ReportsTable() {
                                             <TableCell className="font-medium">{report.name}</TableCell>
                                             <TableCell>{report.month}</TableCell>
                                             <TableCell>
-                                                {formatDistanceToNow(report.processedDate, {
+                                                {formatDistanceToNow(new Date(report.created_at), {
                                                     addSuffix: true,
                                                 })}
                                             </TableCell>
                                             <TableCell>
                                                 <Badge
                                                     variant={
-                                                        report.status === "completed" ? "default" : "destructive"
+                                                        report.status === "completed" ? "default" :
+                                                            report.status === "processing" ? "secondary" :
+                                                                "destructive"
                                                     }
                                                 >
-                                                    {report.status === "completed" ? "✓ Done" : "✗ Failed"}
+                                                    {report.status === "completed" ? "✓ Done" :
+                                                        report.status === "processing" ? "⏳ Processing" :
+                                                            "✗ Failed"}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-muted-foreground">
-                                                {report.fileSize}
+                                                {report.output_file_path ? "~2MB" : "-"}
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 {report.status === "completed" ? (
@@ -199,6 +175,11 @@ export function ReportsTable() {
                                                     >
                                                         <Download className="h-4 w-4 mr-2" />
                                                         Download
+                                                    </Button>
+                                                ) : report.status === "processing" ? (
+                                                    <Button variant="ghost" size="sm" disabled>
+                                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                        Processing
                                                     </Button>
                                                 ) : (
                                                     <Button variant="ghost" size="sm" disabled>

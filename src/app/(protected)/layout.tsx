@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AuthService } from "@/lib/auth/auth.service";
+import { redirect } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,18 +20,24 @@ export const metadata: Metadata = {
   description: "Process and manage employee attendance reports",
 };
 
-export default function RootLayout({
+export default async function ProtectedLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Verify authentication
+  const user = await AuthService.getServerUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
         {children}
-      </body>
-    </html>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
